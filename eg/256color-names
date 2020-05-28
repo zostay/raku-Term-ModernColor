@@ -1,0 +1,22 @@
+#!/usr/bin/env raku
+use v6;
+
+use Term::ModernColor :raw, :colors;
+
+my $longest = Color256.enums.keys.sort(*.chars).reverse.first.chars;
+
+for colors256() -> $color {
+    print " ";
+    print $color.value.fmt("%3d");
+    print " ";
+
+    for colors256(:ansi)[^8] -> $bg-color {
+        print fg-color($color);
+        print bg-color($bg-color);
+        print " ";
+        print $color.fmt("%-{$longest}s");
+        print " ";
+    }
+
+    say ansi-reset;
+}
