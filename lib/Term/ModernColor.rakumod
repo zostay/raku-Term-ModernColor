@@ -108,13 +108,15 @@ multi fg-color-code(ColorIndex:D $color, :$on --> Str:D) {
 }
 
 our sub fg-default-code(:$on) is export(:raw) {
-    ansi-sgr-code(FgDefault)
-    ~ do with $on { ansi-sgr-code(BgDefault) } else { '' }
+    ansi-sgr-code(
+        FgDefault,
+        |(do with $on { BgDefault.value } else { () }),
+    )
 }
 
 our proto bg-color-code(|) is export(:raw) { * }
 multi bg-color-code(Color256() $color, :$with --> Str:D) {
-    ansi-sgr-code(BgSet, $INDEXED-COLOR, $color.value.fmt("%03d"))
+    ansi-sgr-code(BgSet, $INDEXED-COLOR, $color.value)
     ~ do with $with { fg-color-code(|$with) } else { '' }
 }
 multi bg-color-code(ColorIndex:D $color, :$with --> Str:D) {
@@ -123,8 +125,10 @@ multi bg-color-code(ColorIndex:D $color, :$with --> Str:D) {
 }
 
 our sub bg-default-code(:$with) is export(:raw) {
-    ansi-sgr-code(BgDefault)
-    ~ do with $with { ansi-sgr-code(FgDefault) } else { '' }
+    ansi-sgr-code(
+        BgDefault,
+        |(do with $with { FgDefault.value } else { () }),
+    )
 }
 
 subset ColorElement of Int where 0 <= * < 256;
@@ -167,23 +171,24 @@ multi bg-color(ColorElement:D $r, ColorElement:D $g, ColorElement:D $b, *@_, :$w
 
 our sub _generate-exports($key) {
     % = gather {
-        for Color256.enums.keys -> $color-name {
-            my $color = Color256::{$color-name}.subst(/(\w) (<[A..Z]>)/, { "$0-$1" }, :g).lc;
+        for Color256.enums.keys -> $color-name is copy {
+            my $color = Color256::{$color-name};
+            $color-name .= subst(/(\w) (<[A..Z]>)/, { "$0-$1" }, :g).=lc;
 
             if $key eq 'raw' {
-                take "&fg-{$color}-code" => sub () { fg-color-code($color) }
+                take "&fg-{$color-name}-code" => sub (:$on) { fg-color-code($color, :$on) }
             }
 
             if $key eq 'raw' {
-                take "&bg-{$color}-code" => sub () { bg-color-code($color) }
+                take "&bg-{$color-name}-code" => sub (:$with) { bg-color-code($color, :$with) }
             }
 
             if $key eq 'named' | 'fg-named' {
-                take "&fg-$color" => sub (*@_) { fg-color($color, |@_) }
+                take "&fg-$color-name" => sub (*@_, :$on) { fg-color($color, |@_, :$on) }
             }
 
             if $key eq 'named' | 'bg-named' {
-                take "&bg-$color" => sub (*@_) { bg-color($color, |@_) }
+                take "&bg-$color-name" => sub (*@_, :$with) { bg-color($color, |@_, :$with) }
             }
         }
     }
