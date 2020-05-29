@@ -1,7 +1,7 @@
 #!/usr/bin/env raku
 use v6;
 
-use Term::ModernColor :raw, :colors;
+use Term::ModernColor :raw, :colors, :fg, :bg;
 
 subset Triple of Array where *.elems == 3;
 class Image {
@@ -50,8 +50,7 @@ sub MAIN(Str:D $data-dir) {
                 for ^.width -> $x {
                     my @pixel := .bitmap.shift;
                     my ($b, $g, $r) = |@pixel;
-                    print bg-color-code($r, $g, $b);
-                    print "  ";
+                    print bg-color($r, $g, $b, "  ");
                 }
                 print "\n";
             }

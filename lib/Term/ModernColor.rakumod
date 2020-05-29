@@ -127,6 +127,32 @@ multi bg-color-code(ColorElement:D $r, ColorElement:D $g, ColorElement:D $b --> 
     ansi-sgr-code(BgSet, $RGB-COLOR, $r, $g, $b);
 }
 
+our proto fg-color(|) is export(:fg) { * }
+multi fg-color(Color256:D $color, *@_ --> Str:D) {
+    fg-color-code($color) ~ @_.join ~ fg-default-code
+}
+multi fg-color-code(ColorIndex:D $color, *@_ --> Str:D) {
+    fg-color-code($color) ~ @_.join ~ fg-default-code
+}
+multi fg-color(ColorElement:D $r, ColorElement:D $g, ColorElement:D $b, *@_ --> Str:D) {
+    fg-color-code($r, $g, $b)
+    ~ @_.join
+    ~ fg-default-code
+}
+
+our proto bg-color(|) is export(:bg) { * }
+multi bg-color(Color256:D $color, *@_ --> Str:D) {
+    bg-color-code($color) ~ @_.join ~ bg-default-code
+}
+multi bg-color-code(ColorIndex:D $color, *@_ --> Str:D) {
+    bg-color-code($color) ~ @_.join ~ bg-default-code
+}
+multi bg-color(ColorElement:D $r, ColorElement:D $g, ColorElement:D $b, *@_ --> Str:D) {
+    bg-color-code($r, $g, $b)
+    ~ @_.join
+    ~ bg-default-code
+}
+
 our sub _generate-exports($key) {
     % = gather {
         for Color256.enums.keys -> $color-name {
@@ -140,18 +166,18 @@ our sub _generate-exports($key) {
                 take "&bg-{$color}-code" => sub ($x?) { bg-color-code($color) }
             }
 
-            if $key eq 'named' | 'fg' | 'fg-named' {
+            if $key eq 'named' | 'fg-named' {
                 take "&fg-$color" => sub ($x?) { fg-color-code($color) ~ ($x//'') ~ fg-default-code }
             }
 
-            if $key eq 'named' | 'bg' | 'bg-named' {
+            if $key eq 'named' | 'bg-named' {
                 take "&bg-$color" => sub ($x?) { bg-color-code($color) ~ ($x//'') ~ fg-default-code }
             }
         }
     }
 }
 
-my @pkg-keys = <named plain plain-named fg fg-named bg bg-named>;
+my @pkg-keys = <named plain plain-named fg-named bg-named>;
 for @pkg-keys -> $pkg-key {
     my $p = EXPORT::{$pkg-key} = package { }
     for _generate-exports($pkg-key).kv -> $name, $sub {
