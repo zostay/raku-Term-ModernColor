@@ -11,12 +11,12 @@ for colors256() -> $color {
     print " ";
 
     for colors256(:ansi)[^8] -> $bg-color {
-        print fg-color($color);
-        print bg-color($bg-color);
+        print fg-color-code($color);
+        print bg-color-code($bg-color);
         print " ";
         print $color.fmt("%-{$longest}s");
         print " ";
     }
 
-    say ansi-reset;
+    say ansi-reset-code;
 }

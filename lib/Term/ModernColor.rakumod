@@ -30,7 +30,7 @@ our sub ansi-code(@params, $final --> Str:D) is export(:raw) {
     "{$CSI}@params.join()$final"
 }
 
-our sub ansi-sgr(AnsiSgrCode:D $code, *@params --> Str:D) is export(:raw) {
+our sub ansi-sgr-code(AnsiSgrCode:D $code, *@params --> Str:D) is export(:raw) {
     ansi-code([$code.value, |@params.map({ ";$_" })], $SGR)
 }
 
@@ -93,51 +93,51 @@ multi colors256(:$grays! --> Seq) {
     (Gray0, Gray1..Gray24, Gray25).flat.map: { Color256($^color) }
 }
 
-our constant ansi-reset is export(:raw) = ansi-sgr(Reset);
+our constant ansi-reset-code is export(:raw) = ansi-sgr-code(Reset);
 
 subset ColorIndex of Int where 0 <= * < 256;
 
-our proto fg-color(|) is export(:raw) { * }
-multi fg-color(Color256:D $color --> Str:D) {
-    ansi-sgr(FgSet, $INDEXED-COLOR, $color.value);
+our proto fg-color-code(|) is export(:raw) { * }
+multi fg-color-code(Color256:D $color --> Str:D) {
+    ansi-sgr-code(FgSet, $INDEXED-COLOR, $color.value);
 }
-multi fg-color(ColorIndex:D $color --> Str:D) {
-    ansi-sgr(FgSet, $INDEXED-COLOR, $color);
-}
-
-our constant fg-default is export(:raw) = ansi-sgr(FgDefault);
-
-our proto bg-color(|) is export(:raw) { * }
-multi bg-color(Color256() $color --> Str:D) {
-    ansi-sgr(BgSet, $INDEXED-COLOR, $color.value.fmt("%03d"));
-}
-multi bg-color(ColorIndex:D $color --> Str:D) {
-    ansi-sgr(BgSet, $INDEXED-COLOR, $color);
+multi fg-color-code(ColorIndex:D $color --> Str:D) {
+    ansi-sgr-code(FgSet, $INDEXED-COLOR, $color);
 }
 
-our constant bg-default is export(:raw) = ansi-sgr(BgDefault);
+our constant fg-default-code is export(:raw) = ansi-sgr-code(FgDefault);
+
+our proto bg-color-code(|) is export(:raw) { * }
+multi bg-color-code(Color256() $color --> Str:D) {
+    ansi-sgr-code(BgSet, $INDEXED-COLOR, $color.value.fmt("%03d"));
+}
+multi bg-color-code(ColorIndex:D $color --> Str:D) {
+    ansi-sgr-code(BgSet, $INDEXED-COLOR, $color);
+}
+
+our constant bg-default-code is export(:raw) = ansi-sgr-code(BgDefault);
 
 subset ColorElement of Int where 0 <= * < 256;
 
-multi fg-color(ColorElement:D $r, ColorElement:D $g, ColorElement:D $b --> Str:D) {
-    ansi-sgr(FgSet, $RGB-COLOR, $r, $g, $b);
+multi fg-color-code(ColorElement:D $r, ColorElement:D $g, ColorElement:D $b --> Str:D) {
+    ansi-sgr-code(FgSet, $RGB-COLOR, $r, $g, $b);
 }
 
-multi bg-color(ColorElement:D $r, ColorElement:D $g, ColorElement:D $b --> Str:D) {
-    ansi-sgr(BgSet, $RGB-COLOR, $r, $g, $b);
+multi bg-color-code(ColorElement:D $r, ColorElement:D $g, ColorElement:D $b --> Str:D) {
+    ansi-sgr-code(BgSet, $RGB-COLOR, $r, $g, $b);
 }
 
 our sub _generate-exports($key) {
     % = gather {
         for Color256.enums.keys -> $color-name {
-            my $color = Color256::{$color-name}.subst(/(\w) (<-[A..Z]>)/, { "$0-$1" }, :g).lc;
+            my $color = Color256::{$color-name}.subst(/(\w) (<[A..Z]>)/, { "$0-$1" }, :g).lc;
 
             if $key eq 'named' | 'fg' | 'fg-named' {
-                take "&fg-$color" => sub ($x?) { fg-color($color) ~ ($x//'') ~ fg-default }
+                take "&fg-$color" => sub ($x?) { fg-color-code($color) ~ ($x//'') ~ fg-default-code }
             }
 
             if $key eq 'named' | 'bg' | 'bg-named' {
-                take "&bg-$color" => sub ($x?) { bg-color($color) ~ ($x//'') ~ fg-default }
+                take "&bg-$color" => sub ($x?) { bg-color-code($color) ~ ($x//'') ~ fg-default-code }
             }
         }
     }

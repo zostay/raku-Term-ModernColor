@@ -50,10 +50,10 @@ sub MAIN(Str:D $data-dir) {
                 for ^.width -> $x {
                     my @pixel := .bitmap.shift;
                     my ($b, $g, $r) = |@pixel;
-                    print bg-color($r, $g, $b);
+                    print bg-color-code($r, $g, $b);
                     print "  ";
                 }
-                print ansi-reset;
+                print ansi-reset-code;
                 print "\n";
             }
         }
