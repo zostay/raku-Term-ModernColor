@@ -53,7 +53,6 @@ sub MAIN(Str:D $data-dir) {
                     print bg-color-code($r, $g, $b);
                     print "  ";
                 }
-                print ansi-reset-code;
                 print "\n";
             }
         }
