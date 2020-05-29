@@ -1,0 +1,61 @@
+#!/usr/bin/env raku
+use v6;
+
+use Term::ModernColor :raw, :colors;
+
+subset Triple of Array where *.elems == 3;
+class Image {
+    has $.height;
+    has $.width;
+    has @.bitmap;
+}
+
+sub read-tga(IO::Path:D $file --> Image) {
+    my $size = $file.s;
+    my $tga = $file.slurp(:bin);
+
+    my $data   = $tga.read-int8(2);
+    my $height = $tga.read-int16(12);
+    my $width  = $tga.read-int16(14);
+    my $bpp    = $tga.read-int8(16);
+
+    die "incompatible datatype $data" unless $data == 2;
+    die "incompatible bpp $bpp" unless $bpp == 24 | 32;
+
+    my $i = 18;
+    my @bitmap = (^$height X ^$width).map: -> ($y, $x) {
+        [
+            $tga.read-uint8($i++),
+            $tga.read-uint8($i++),
+            $tga.read-uint8($i++),
+            do if $bpp == 32 { $tga.read-uint8($i++) },
+        ]
+    }
+
+    Image.new(:$height, :$width, :@bitmap);
+}
+
+sub read-all-tgas(IO::Path:D $data-dir --> Seq) {
+    gather for $data-dir.dir(test => / '.tga' $/).sort -> $tga-file {
+        take read-tga($tga-file);
+    }
+}
+
+sub MAIN(Str:D $data-dir) {
+    print "\e[2J";
+    loop {
+        for read-all-tgas($data-dir.IO) {
+            print "\e[0;0H";
+            for ^.height -> $y {
+                for ^.width -> $x {
+                    my @pixel := .bitmap.shift;
+                    my ($b, $g, $r) = |@pixel;
+                    print bg-color($r, $g, $b);
+                    print "  ";
+                }
+                print ansi-reset;
+                print "\n";
+            }
+        }
+    }
+}
