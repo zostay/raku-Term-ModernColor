@@ -159,19 +159,19 @@ our sub _generate-exports($key) {
             my $color = Color256::{$color-name}.subst(/(\w) (<[A..Z]>)/, { "$0-$1" }, :g).lc;
 
             if $key eq 'raw' {
-                take "&fg-{$color}-code" => sub { fg-color-code($color) }
+                take "&fg-{$color}-code" => sub () { fg-color-code($color) }
             }
 
             if $key eq 'raw' {
-                take "&bg-{$color}-code" => sub ($x?) { bg-color-code($color) }
+                take "&bg-{$color}-code" => sub () { bg-color-code($color) }
             }
 
             if $key eq 'named' | 'fg-named' {
-                take "&fg-$color" => sub ($x?) { fg-color-code($color) ~ ($x//'') ~ fg-default-code }
+                take "&fg-$color" => sub (*@_) { fg-color($color, |@_) }
             }
 
             if $key eq 'named' | 'bg-named' {
-                take "&bg-$color" => sub ($x?) { bg-color-code($color) ~ ($x//'') ~ fg-default-code }
+                take "&bg-$color" => sub (*@_) { bg-color($color, |@_) }
             }
         }
     }
