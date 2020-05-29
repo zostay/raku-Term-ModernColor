@@ -2,6 +2,106 @@ use v6;
 
 unit module Term::ModernColor;
 
+=begin pod
+
+=head1 NAME
+
+Term::ModernColor - Add color to your terminal, lots of color
+
+=head1 SYNOPSIS
+
+    {
+        use Term::ModernColor :fg, :colors;
+        say fg-color(ElectricPurple, :on(Citrine),
+            "This is bright."
+        );
+    }
+
+    {
+        use Term::ModernColor :bg-named;
+        say bg-jazzberry-jam("This is some hot pink.", :with(0xFF, 0x99, 0x99));
+    }
+
+=head1 DESCRIPTION
+
+I don't know that Raku really needed another ANSI color library, but I wrote one anyway. It's named Modern because of reasons.
+
+=head1 COLOR NAMES
+
+The color names in this library follow no regular scheme but my own, though, my own scheme was based on trying to find well-known color names.
+
+Assuming you don't use the ANSI OSC codes or some other mechanism to change the colors, your terminal probably uses the standard 256 color palette used by most terminals by default. This color scheme has 3 color bands.
+
+=item * The first band is the original(ish) 16 ANSI colors, which are basically white, black, additive primaries, and additive secondaries at two intensity levels.
+
+=item * The second band represents a 6 by 6 by 6 color cube that evenly covers the RGB spectrum. The 8 corners of the cube repeat the 8 colors already mentioned with a spectrum of colors in between.
+
+=item * The third band fills the remaining 24 index slots with an even spread of gray values between white and black. This band is missing a full white and full black, though, so the color cube's white and black are used to cap the grayscale to give it 26 shades.
+
+The ANSI colors are given what I consider to be traditional names:
+
+    Black Maroon Green Olive  Navy Purple  Teal Silver
+    Gray  Red    Lime  Yellow Blue Fuschia Aqua White
+
+And the shades of gray are named C<Gray0> to C<Gray25>, which means that the color cube's white is C<Gray25> and the color cube's black is C<Gray0>. (And in the usual color palette, C<Gray25> is exactly the same as C<White> and C<Gray0> is exactly the same as C<Black> even though both are different indexes in the palette.)
+
+The rest of the colors, however, have well-established, but unconventionally compiled names.
+
+At first I was going to see if there is a standard list of names for xterm colors. It would appear that L<Jonas Jacek|https://jonasjacek.github.io/colors/> has attempted this, but with limited success. His color scheme attempts to map X11 color names onto the xterm names, but they match up and there are several duplicates.
+
+I also discovered L<colornames.org|https://colornames.org>, which is kind of fun, but suffers from the same problem any other popularity contest: people game it to make it funny and absurd. I probably could have used it, but I found something I think is better.
+
+Wikipedia maintains several lists of colors, which includes a combined list of the other colors lists. This is currently broken out into three pages: L<A-F|https://en.wikipedia.org/wiki/List_of_colors:_A%E2%80%93F>, L<G-M|https://en.wikipedia.org/wiki/List_of_colors:_G%E2%80%93M>, and L<N-Z|https://en.wikipedia.org/wiki/List_of_colors:_N%E2%80%93Z>. I took the pages from May 24, 2020 and used that list of colors to extract what I think to be a pretty reasonable list of names.
+
+I deleted all the duplicates and all the names I considered fixed. Then I took the RGB values for a typical color cube palette and compared it to the RGB values presented on Wikipedia for each color to measure color distance using a fairly unscientific method (comparing RGB values is not the best way to compare colors, but it's not a bad way for this purpose given how imprecise human color vision is). I then tried to pick the closest matches to the Wikipedia colors while also preserving uniqueness. And this list of colors is the result:
+
+    RoyalBlue NavyBlue DukeBlue MediumBlue Zaffre
+    PakistanGreen TropicalRainforest BlueSapphire HonoluluBlue TrueBlue DodgerBlue
+    Ao SpanishViridian DarkCyan CeladonBlue StarCommandBlue Azure
+    IndiaGreen GOGreen PersianGreen TiffanyBlue RobinEggBlue Capri
+    DarkPastelGreen Malachite CaribbeanGreen LightSeaGreen DarkTurquoise VividSkyBlue
+    ElectricGreen Erin SpringGreen MediumSpringGreen TurquoiseBlue Cyan
+    BloodRed TyrianPurple Indigo TrypanBlue HanPurple ElectricIndigo
+    AntiqueBronze GraniteGray DarkBlueGray Liberty MajorelleBlue NeonBlue
+    Avocado RussianGreen SteelTeal Glaucous UnitedNationsBlue CornflowerBlue
+    KellyGreen ForestGreen ShinyShamrock GreenSheen CarolinaBlue BlueJeans
+    Harlequin ParisGreen Emerald MediumAquamarine MediumTurquoise MayaBlue
+    BrightGreen ScreaminGreen OceanGreen Verdigris Turquoise ItalianSkyBlue
+    DarkRed Patriarch MardiGras DarkMagenta FrenchViolet ElectricViolet
+    Brown DeepTaupe ChineseViolet FrenchLilac MediumPurple MediumSlateBlue
+    Gold Shadow TaupeGray CoolGrey MiddleBluePurple Aero
+    AppleGreen Asparagus DarkSeaGreen PewterBlue DarkSkyBlue FrenchSkyBlue
+    SheenGreen Mantis LightGreen TurquoiseGreen MiddleBlueGreen LightSkyBlue
+    LawnGreen SpringFrost MintGreen EtonBlue Aquamarine ElectricBlue
+    Rufous JazzberryJam Flirt Byzantine DarkViolet ElectricPurple
+    WindsorTan CopperPenny AntiqueFuchsia PearlyPurple MediumOrchid Amethyst
+    DarkGoldenrod CafeAuLait EnglishLavender GlossyGrape Lavender AfricanViolet
+    AcidGreen OliveGreen Sage SilverChalice MaximumBluePurple BabyBlueEyes
+    BitterLemon JuneBud GrannySmithApple Celadon LightBlue UranianBlue
+    SpringBud Inchworm KeyLime AshGray MagicMint Celeste
+    RossoCorsa RubineRed MexicanPink HollywoodCerise PsychedelicPurple Phlox
+    Tenne IndianRed Blush SkyMagenta Orchid Heliotrope
+    HarvestGold RawSienna NewYorkPink MiddlePurple FrenchMauve BrightLilac
+    Goldenrod EarthYellow Tumbleweed SilverPink PinkLavender Mauve
+    Citrine ArylideYellow Flax DesertSand Timberwolf Periwinkle
+    Chartreuse MaximumGreenYellow Mindaro TeaGreen Nyanza LightCyan
+    CandyAppleRed WinterSky Rose FashionFuchsia HotMagenta Magenta
+    SafetyOrange Bittersweet BrinkPink HotPink RosePink UltraPink
+    DarkOrange Coral CongoPink TickleMePink PersianPink PinkFlamingo
+    ChineseYellow Rajah MacaroniAndCheese Melon CottonCandy CarnationPink
+    SchoolBusYellow NaplesYellow Jasmine LightOrange PalePink PinkLace
+    LemonGlacier LaserLemon Canary Peach Cream
+
+I think it works pretty well and ends up with a lot of interesting cultural references across the world.
+
+You can also address all colors by numeric index instead of by name, if that suits your application better or if you just don't like my names. Or you can use a three part RGB value, assuming your terminal was updated sometime in the past decade or so.
+
+=head1 CAVEATS
+
+This library generally uses American spellings for colors and color words, which seem to have a higher concentration of dialect-specific spellings than other domains. If that bugs you, sorry not sorry. This is my dialect of English and this is my library. If you want to figure out how to work other dialect spellings in, feel free to offer a patch or fork it.
+
+=end pod
+
 our constant $CSI = "\e[";
 our constant $SGR = "m";
 
