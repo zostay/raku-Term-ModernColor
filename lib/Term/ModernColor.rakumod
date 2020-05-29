@@ -8,7 +8,7 @@ our constant $SGR = "m";
 our constant $RGB-COLOR = "2";
 our constant $INDEXED-COLOR = "5";
 
-enum AnsiCode is export(:raw) (
+enum AnsiSgrCode is export(:raw) (
     Reset => 0,
     Bold => 1, Faint => 2, Italic => 3, Underline => 4,
     BlinkSlow => 5, BlinkFast => 6, Reverse => 7, Conceal => 8, CrossOut => 9,
@@ -26,8 +26,12 @@ enum AnsiCode is export(:raw) (
     BgSet => 48, BgDefault => 49,
 );
 
-our sub ansi-sgr(AnsiCode:D $code, *@params --> Str:D) is export(:raw) {
-    "{$CSI}{$code.value}{[~] @params.map({ ";$_" })}$SGR"
+our sub ansi-code(@params, $final --> Str:D) is export(:raw) {
+    "{$CSI}@params.join()$final"
+}
+
+our sub ansi-sgr(AnsiSgrCode:D $code, *@params --> Str:D) is export(:raw) {
+    ansi-code([$code.value, |@params.map({ ";$_" })], $SGR)
 }
 
 enum Color256 is export(:colors) <

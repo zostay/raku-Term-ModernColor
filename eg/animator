@@ -42,10 +42,10 @@ sub read-all-tgas(IO::Path:D $data-dir --> Seq) {
 }
 
 sub MAIN(Str:D $data-dir) {
-    print "\e[2J";
+    print ansi-code([2], 'J');
     loop {
         for read-all-tgas($data-dir.IO) {
-            print "\e[0;0H";
+            print ansi-code(['0;0'], 'H');
             for ^.height -> $y {
                 for ^.width -> $x {
                     my @pixel := .bitmap.shift;
