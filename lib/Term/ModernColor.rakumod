@@ -98,59 +98,71 @@ our constant ansi-reset-code is export(:raw) = ansi-sgr-code(Reset);
 subset ColorIndex of Int where 0 <= * < 256;
 
 our proto fg-color-code(|) is export(:raw) { * }
-multi fg-color-code(Color256:D $color --> Str:D) {
-    ansi-sgr-code(FgSet, $INDEXED-COLOR, $color.value);
+multi fg-color-code(Color256:D $color, :$on --> Str:D) {
+    ansi-sgr-code(FgSet, $INDEXED-COLOR, $color.value)
+    ~ do with $on { bg-color-code(|$on) } else { '' }
 }
-multi fg-color-code(ColorIndex:D $color --> Str:D) {
-    ansi-sgr-code(FgSet, $INDEXED-COLOR, $color);
+multi fg-color-code(ColorIndex:D $color, :$on --> Str:D) {
+    ansi-sgr-code(FgSet, $INDEXED-COLOR, $color)
+    ~ do with $on { bg-color-code(|$on) } else { '' }
 }
 
-our constant fg-default-code is export(:raw) = ansi-sgr-code(FgDefault);
+our sub fg-default-code(:$on) is export(:raw) {
+    ansi-sgr-code(FgDefault)
+    ~ do with $on { ansi-sgr-code(BgDefault) } else { '' }
+}
 
 our proto bg-color-code(|) is export(:raw) { * }
-multi bg-color-code(Color256() $color --> Str:D) {
-    ansi-sgr-code(BgSet, $INDEXED-COLOR, $color.value.fmt("%03d"));
+multi bg-color-code(Color256() $color, :$with --> Str:D) {
+    ansi-sgr-code(BgSet, $INDEXED-COLOR, $color.value.fmt("%03d"))
+    ~ do with $with { fg-color-code(|$with) } else { '' }
 }
-multi bg-color-code(ColorIndex:D $color --> Str:D) {
-    ansi-sgr-code(BgSet, $INDEXED-COLOR, $color);
+multi bg-color-code(ColorIndex:D $color, :$with --> Str:D) {
+    ansi-sgr-code(BgSet, $INDEXED-COLOR, $color)
+    ~ do with $with { fg-color-code(|$with) } else { '' }
 }
 
-our constant bg-default-code is export(:raw) = ansi-sgr-code(BgDefault);
+our sub bg-default-code(:$with) is export(:raw) {
+    ansi-sgr-code(BgDefault)
+    ~ do with $with { ansi-sgr-code(FgDefault) } else { '' }
+}
 
 subset ColorElement of Int where 0 <= * < 256;
 
-multi fg-color-code(ColorElement:D $r, ColorElement:D $g, ColorElement:D $b --> Str:D) {
-    ansi-sgr-code(FgSet, $RGB-COLOR, $r, $g, $b);
+multi fg-color-code(ColorElement:D $r, ColorElement:D $g, ColorElement:D $b, :$on --> Str:D) {
+    ansi-sgr-code(FgSet, $RGB-COLOR, $r, $g, $b)
+    ~ do with $on { bg-color-code(|$on) } else { '' }
 }
 
-multi bg-color-code(ColorElement:D $r, ColorElement:D $g, ColorElement:D $b --> Str:D) {
-    ansi-sgr-code(BgSet, $RGB-COLOR, $r, $g, $b);
+multi bg-color-code(ColorElement:D $r, ColorElement:D $g, ColorElement:D $b, :$with --> Str:D) {
+    ansi-sgr-code(BgSet, $RGB-COLOR, $r, $g, $b)
+    ~ do with $with { fg-color-code(|$with) } else { '' }
 }
 
 our proto fg-color(|) is export(:fg) { * }
-multi fg-color(Color256:D $color, *@_ --> Str:D) {
-    fg-color-code($color) ~ @_.join ~ fg-default-code
+multi fg-color(Color256:D $color, *@_, :$on --> Str:D) {
+    fg-color-code($color, :$on) ~ @_.join ~ fg-default-code(:$on)
 }
-multi fg-color-code(ColorIndex:D $color, *@_ --> Str:D) {
-    fg-color-code($color) ~ @_.join ~ fg-default-code
+multi fg-color-code(ColorIndex:D $color, *@_, :$on --> Str:D) {
+    fg-color-code($color, :$on) ~ @_.join ~ fg-default-code(:$on)
 }
-multi fg-color(ColorElement:D $r, ColorElement:D $g, ColorElement:D $b, *@_ --> Str:D) {
-    fg-color-code($r, $g, $b)
+multi fg-color(ColorElement:D $r, ColorElement:D $g, ColorElement:D $b, *@_, :$on --> Str:D) {
+    fg-color-code($r, $g, $b, :$on)
     ~ @_.join
-    ~ fg-default-code
+    ~ fg-default-code(:$on)
 }
 
 our proto bg-color(|) is export(:bg) { * }
-multi bg-color(Color256:D $color, *@_ --> Str:D) {
-    bg-color-code($color) ~ @_.join ~ bg-default-code
+multi bg-color(Color256:D $color, *@_, :$with --> Str:D) {
+    bg-color-code($color, :$with) ~ @_.join ~ bg-default-code(:$with)
 }
-multi bg-color-code(ColorIndex:D $color, *@_ --> Str:D) {
-    bg-color-code($color) ~ @_.join ~ bg-default-code
+multi bg-color(ColorIndex:D $color, *@_, :$with --> Str:D) {
+    bg-color-code($color, :$with) ~ @_.join ~ bg-default-code(:$with)
 }
-multi bg-color(ColorElement:D $r, ColorElement:D $g, ColorElement:D $b, *@_ --> Str:D) {
-    bg-color-code($r, $g, $b)
+multi bg-color(ColorElement:D $r, ColorElement:D $g, ColorElement:D $b, *@_, :$with --> Str:D) {
+    bg-color-code($r, $g, $b, :$with)
     ~ @_.join
-    ~ bg-default-code
+    ~ bg-default-code(:$with)
 }
 
 our sub _generate-exports($key) {
