@@ -1,0 +1,36 @@
+#!/usr/bin/env raku
+use v6;
+
+use Term::ModernColor :raw, :colors;
+
+say "System colors:";
+for colors256(:ansi) -> $color {
+    my $fg-color = $color > 0 ?? Gray0 !! Gray25;
+    print "{bg-color($color)}{fg-color($fg-color)}$color.fmt("%3d") ";
+
+    print "\n" if ++$ %% 8;
+}
+print ansi-reset, "\n";
+
+say "Color cube, 6\c[MULTIPLICATION X]6\c[MULTIPLICATION X]6:";
+for ^6 -> $green {
+    my $fg-color = $green > 2 ?? Gray0 !! Gray25;
+    for ^6 -> $red {
+        for ^6 -> $blue {
+            my $color = 16 + $red * 36 + $green * 6 + $blue;
+            print " {bg-color($color)}{fg-color($fg-color)}$color.fmt("%3d") ";
+        }
+        print ansi-reset, " ";
+    }
+    print "\n";
+}
+
+print ansi-reset, "\n";
+
+say "Grayscale ramp:";
+for colors256(:grays).[1..*-2] -> $color {
+    my $fg-color = $color > 243 ?? Gray0 !! Gray25;
+    print " {bg-color($color)}{fg-color($fg-color)}$color.fmt("%3d") ";
+}
+
+print ansi-reset, "\n";
