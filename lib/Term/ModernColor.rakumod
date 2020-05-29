@@ -132,6 +132,14 @@ our sub _generate-exports($key) {
         for Color256.enums.keys -> $color-name {
             my $color = Color256::{$color-name}.subst(/(\w) (<[A..Z]>)/, { "$0-$1" }, :g).lc;
 
+            if $key eq 'raw' {
+                take "&fg-{$color}-code" => sub { fg-color-code($color) }
+            }
+
+            if $key eq 'raw' {
+                take "&bg-{$color}-code" => sub ($x?) { bg-color-code($color) }
+            }
+
             if $key eq 'named' | 'fg' | 'fg-named' {
                 take "&fg-$color" => sub ($x?) { fg-color-code($color) ~ ($x//'') ~ fg-default-code }
             }
