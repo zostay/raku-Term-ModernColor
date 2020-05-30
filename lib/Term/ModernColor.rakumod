@@ -146,7 +146,7 @@ This exports the following color constants which can be used to set the color to
     Gray0 RoyalBlue NavyBlue DukeBlue MediumBlue Zaffre
     PakistanGreen TropicalRainforest BlueSapphire HonoluluBlue TrueBlue DodgerBlue
     Ao SpanishViridian DarkCyan CeladonBlue StarCommandBlue Azure
-    IndiaGreen GOGreen PersianGreen TiffanyBlue RobinEggBlue Capri
+    IndiaGreen GoGreen PersianGreen TiffanyBlue RobinEggBlue Capri
     DarkPastelGreen Malachite CaribbeanGreen LightSeaGreen DarkTurquoise VividSkyBlue
     ElectricGreen Erin SpringGreen MediumSpringGreen TurquoiseBlue Cyan
     BloodRed TyrianPurple Indigo TrypanBlue HanPurple ElectricIndigo
@@ -256,7 +256,7 @@ enum Color256 is export(:colors) <
     Gray0 RoyalBlue NavyBlue DukeBlue MediumBlue Zaffre
     PakistanGreen TropicalRainforest BlueSapphire HonoluluBlue TrueBlue DodgerBlue
     Ao SpanishViridian DarkCyan CeladonBlue StarCommandBlue Azure
-    IndiaGreen GOGreen PersianGreen TiffanyBlue RobinEggBlue Capri
+    IndiaGreen GoGreen PersianGreen TiffanyBlue RobinEggBlue Capri
     DarkPastelGreen Malachite CaribbeanGreen LightSeaGreen DarkTurquoise VividSkyBlue
     ElectricGreen Erin SpringGreen MediumSpringGreen TurquoiseBlue Cyan
     BloodRed TyrianPurple Indigo TrypanBlue HanPurple ElectricIndigo
@@ -388,6 +388,26 @@ The named C<:$on> argument gives you the option of setting the background color 
 
 All of them return a string containing the ANSI code or codes needed to perform the color change requested.
 
+=head2 sub bg-color-code
+
+    our proto bg-color-code(|) is export(:raw)
+    multi bg-color-code(Color256:D $color, :$with --> Str:D)
+    multi bg-color-code(Int:D $color, :$with --> Str:D)
+    multi bg-color-code(Int:D $r, Int:D $g, Int:D $b, :$with --> Str:D)
+
+This is a low level function that outputs the ANSI control sequence for setting the color of the background of text that comes after it.
+
+You can use indexed colors by either passing a L<Color256#enum Color256> color constant or an integer between 0 and 255, inclusive.
+
+The other version, with C<$r>, C<$g>, and C<$b> arguments allows you to set the color using an RGB value.
+
+These changes are all for the background color of the textx.
+
+You can change the foreground at the same time by passing the C<:$with> named argument. This can be set to a numeric index, a Color256, or a 3 element list to set the RGB color.
+
+
+All versions return the ANSI code sequences requested as a string.
+
 =end pod
 
 subset ColorIndex of Int where 0 <= * < 256;
@@ -438,11 +458,43 @@ multi bg-color-code(ColorElement:D $r, ColorElement:D $g, ColorElement:D $b, :$w
     ~ do with $with { fg-color-code(|$with) } else { '' }
 }
 
+=begin pod
+
+=head2 sub fg-color
+
+    our proto fg-color(|) is export(:fg)
+    multi fg-color(Color256:D $color, *@text, :$on --> Str:D)
+    multi fg-color(Int:D $color, *@text, :$on --> Str:D)
+    multi fg-color(Int:D $r, Int:D $g, Int:D $b, *@text, :$on --> Str:D)
+
+This, along with the L<bg-color subroutine#sub bg-color> make up the primary general purpose coloring tools provided by this library.
+
+Each version of the function take a color, followed by zero or more objects to stringify, and then an optional named C<:$on> parameter for setting the background. The color can be specified by name using a L<Color256#enum Color256> constant or index number using a single L<Int>. The color can also be specified as three L<Int>s to set the color by RGB value.
+
+The text providing will be stringified and concatenated using C<join>.
+
+After the string, the foreground reset is set.
+
+The C<:$on> value can be specified the same as the foreground color and is used to set the background color. If this parameter is passed, the background color reset will be passed.
+
+This method returns the string for colorizing the given text.
+
+=head2 sub bg-color
+
+    our proto bg-color(|) is export(:fg)
+    multi bg-color(Color256:D $color, *@text, :$with --> Str:D)
+    multi bg-color(Int:D $color, *@text, :$with --> Str:D)
+    multi bg-color(Int:D $r, Int:D $g, Int:D $b, *@text, :$with --> Str:D)
+
+This function works exactly like the L<fg-color subroutine#sub fg-color>, but with the background and foreground functions reversed. The named argument for the foreground is C<:$with> rather than C<:$on>.
+
+=end pod
+
 our proto fg-color(|) is export(:fg) { * }
 multi fg-color(Color256:D $color, *@_, :$on --> Str:D) {
     fg-color-code($color, :$on) ~ @_.join ~ fg-default-code(:$on)
 }
-multi fg-color-code(ColorIndex:D $color, *@_, :$on --> Str:D) {
+multi fg-color(ColorIndex:D $color, *@_, :$on --> Str:D) {
     fg-color-code($color, :$on) ~ @_.join ~ fg-default-code(:$on)
 }
 multi fg-color(ColorElement:D $r, ColorElement:D $g, ColorElement:D $b, *@_, :$on --> Str:D) {
@@ -464,17 +516,43 @@ multi bg-color(ColorElement:D $r, ColorElement:D $g, ColorElement:D $b, *@_, :$w
     ~ bg-default-code(:$with)
 }
 
+=begin pod
+
+=head2 sub fg-*-code
+
+=head2 sub bg-*-code
+
+This library can provide named versions of the L<fg-color-code subroutine#sub fg-color-code> and the L<bg-color-code subroutine#sub bg-color-code>, one for every color listed in the L<Color256 enumeration#enum Color256>.
+
+The C<fg-*-code> methods will work just like C<fg-color-code>, but with the color argument omitted. Similarly, the C<bg-*-code> methods will work just like C<bg-color-code>, also with the color argument omitted.
+
+The names of the functions will trade the C<TitleCase> names for C<kebab-case>. For example, the functions for C<JazzberryJam> are C<fg-jazzberry-jam-code> and C<bg-jazzberry-jam-code>.
+
+The C<fg-*-code> functions are exported with the C<:fg-named-raw> tag and the C<bg-*-code> functions are exported wtih the C<:bg-named-raw tag>. Both sets of functions are exported via teh C<:named-raw> tag.
+
+=head2 sub fg-*
+
+=head2 sub bg-*
+
+The high level coloring functions of this library can be provided as named functions. The C<fg-*> functions behave exactly like C<fg-color>, but without the color arguments. The C<bg-*> functions behave exactl like C<bg-color>, but without the color arguments.
+
+The names of the functions will trade the C<TitleCase> names for C<kebab-case>. For example, the functions for C<GrannySmithApple> are C<fg-grany-smith-apple> and C<bg-granny-smith-apple>.
+
+The C<fg-*> functions are exported with the C<:fg-named> tag and the C<bg-*> functions are exported with the C<:bg-named> tag. Both are exported with the C<:named> tag.
+
+=end pod
+
 our sub _generate-exports($key) {
     % = gather {
         for Color256.enums.keys -> $color-name is copy {
             my $color = Color256::{$color-name};
             $color-name .= subst(/(\w) (<[A..Z]>)/, { "$0-$1" }, :g).=lc;
 
-            if $key eq 'raw' {
+            if $key eq 'named-raw' | 'fg-named-raw' {
                 take "&fg-{$color-name}-code" => sub (:$on) { fg-color-code($color, :$on) }
             }
 
-            if $key eq 'raw' {
+            if $key eq 'named-raw' | 'bg-named-raw' {
                 take "&bg-{$color-name}-code" => sub (:$with) { bg-color-code($color, :$with) }
             }
 
@@ -489,7 +567,7 @@ our sub _generate-exports($key) {
     }
 }
 
-my @pkg-keys = <named plain plain-named fg-named bg-named>;
+my @pkg-keys = <named named-raw plain plain-named fg-named bg-named>;
 for @pkg-keys -> $pkg-key {
     my $p = EXPORT::{$pkg-key} = package { }
     for _generate-exports($pkg-key).kv -> $name, $sub {
