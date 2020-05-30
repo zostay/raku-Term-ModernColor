@@ -53,9 +53,97 @@ I also discovered L<colornames.org|https://colornames.org>, which is kind of fun
 
 Wikipedia maintains several lists of colors, which includes a combined list of the other colors lists. This is currently broken out into three pages: L<A-F|https://en.wikipedia.org/wiki/List_of_colors:_A%E2%80%93F>, L<G-M|https://en.wikipedia.org/wiki/List_of_colors:_G%E2%80%93M>, and L<N-Z|https://en.wikipedia.org/wiki/List_of_colors:_N%E2%80%93Z>. I took the pages from May 24, 2020 and used that list of colors to extract what I think to be a pretty reasonable list of names.
 
-I deleted all the duplicates and all the names I considered fixed. Then I took the RGB values for a typical color cube palette and compared it to the RGB values presented on Wikipedia for each color to measure color distance using a fairly unscientific method (comparing RGB values is not the best way to compare colors, but it's not a bad way for this purpose given how imprecise human color vision is). I then tried to pick the closest matches to the Wikipedia colors while also preserving uniqueness. And this list of colors is the result:
+I deleted all the duplicates and all the names I considered fixed. Then I took the RGB values for a typical color cube palette and compared it to the RGB values presented on Wikipedia for each color to measure color distance using a fairly unscientific method (comparing RGB values is not the best way to compare colors, but it's not a bad way for this purpose given how imprecise human color vision is). I then tried to pick the closest matches to the Wikipedia colors while also preserving uniqueness.
 
-    RoyalBlue NavyBlue DukeBlue MediumBlue Zaffre
+All of that was combined to come up with the list of colors you can read with L<#enum Colors256>. I think it works pretty well and ends up with a lot of interesting cultural references across the world.
+
+You can also address all colors by numeric index instead of by name, if that suits your application better or if you just don't like my names. Or you can use a three part RGB value, assuming your terminal was updated sometime in the past decade or so.
+
+=head1 CAVEATS
+
+This library generally uses American spellings for colors and color words, which seem to have a higher concentration of dialect-specific spellings than other domains. If that bugs you, sorry not sorry. This is my dialect of English and this is my library. If you want to figure out how to work other dialect spellings in, feel free to offer a patch or fork it.
+
+=head1 CONSTANTS
+
+=head2 enum AnsiSgrCode
+
+    enum AnsiSgrCode is export(:raw)
+
+This enumeration defines a number of constants for use with ANSI CSI-SGR sequences. An ANSI CSI code is one that is prefixed with the Control Sequence Introducer, which is used to issue a number of different terminal commands for various actions. This library primarily supports the SGR subset,  Select Graphics Rendition sequences. These control the appearance of text and the background of that text as it is written.
+
+The following SGR codes are defined:
+
+    SgrReset
+    SgrBold
+    SgrFaint
+    SgrItalic
+    SgrUnderline
+    SgrBlinkSlow
+    SgrBlinkFast
+    SgrReverse
+    SgrConceal
+    SgrCrossOut
+    SgrFontDefault
+    SgrFontAlt1
+    SgrFontAlt2
+    SgrFontAlt3
+    SgrFontAlt4
+    SgrFontAlt5
+    SgrFontAlt6
+    SgrFontAlt7
+    SgrFontAlt8
+    SgrFontAlt9
+    SgrFontFraktur
+    SgrUnderlineDouble
+    SgrUnBold
+    SgrUnItalic
+    SgrUnUnderline
+    SgrUnBlink
+    SgrUnReverse
+    SgrUnConceal
+    SgrUnCrossOut
+    SgrFgBlack
+    SgrFgRed
+    SgrFgGreen
+    SgrFgYellow
+    SgrFgBlue
+    SgrFgMagenta
+    SgrFgCyan
+    SgrFgWhite
+    SgrFgSet
+    SgrFgDefault
+    SgrBgBlack
+    SgrBgRed
+    SgrBgGreen
+    SgrBgYellow
+    SgrBgBlue
+    SgrBgMagenta
+    SgrBgCyan
+    SgrBgWhite
+    SgrBgSet
+    SgrBgDefault
+
+The ones primarily used with this library are:
+
+=item * C<SgrReset> is used with the L<constant ansi-reset-code>.
+
+=item * C<SgrFgSet> is used to set the foreground color.
+
+=item * C<SgrFgDefault> is used to clear the foreground color.
+
+=item * C<SgrBgSet> is used to set the background color.
+
+=item * C<SgrBgDefault> is used to clear the background color.
+
+=head2 enum Color256
+
+    enum Color256 is export(:colors)
+
+This exports the following color constants which can be used to set the color to an indexed color value:
+
+    Black Maroon Green Olive  Navy Purple  Teal Silver
+    Gray  Red    Lime  Yellow Blue Fuschia Aqua White
+    Gray0 RoyalBlue NavyBlue DukeBlue MediumBlue Zaffre
     PakistanGreen TropicalRainforest BlueSapphire HonoluluBlue TrueBlue DodgerBlue
     Ao SpanishViridian DarkCyan CeladonBlue StarCommandBlue Azure
     IndiaGreen GOGreen PersianGreen TiffanyBlue RobinEggBlue Capri
@@ -90,15 +178,17 @@ I deleted all the duplicates and all the names I considered fixed. Then I took t
     DarkOrange Coral CongoPink TickleMePink PersianPink PinkFlamingo
     ChineseYellow Rajah MacaroniAndCheese Melon CottonCandy CarnationPink
     SchoolBusYellow NaplesYellow Jasmine LightOrange PalePink PinkLace
-    LemonGlacier LaserLemon Canary Peach Cream
+    LemonGlacier LaserLemon Canary Peach Cream Gray25
+    Gray1 Gray2 Gray3 Gray4 Gray5 Gray6
+    Gray7 Gray8 Gray9 Gray10 Gray11 Gray12
+    Gray13 Gray14 Gray15 Gray16 Gray17 Gray18
+    Gray19 Gray20 Gray21 Gray22 Gray23 Gray24
 
-I think it works pretty well and ends up with a lot of interesting cultural references across the world.
+=head2 constant ansi-reset-code
 
-You can also address all colors by numeric index instead of by name, if that suits your application better or if you just don't like my names. Or you can use a three part RGB value, assuming your terminal was updated sometime in the past decade or so.
+    our constant ansi-reset-code is export(:raw)
 
-=head1 CAVEATS
-
-This library generally uses American spellings for colors and color words, which seem to have a higher concentration of dialect-specific spellings than other domains. If that bugs you, sorry not sorry. This is my dialect of English and this is my library. If you want to figure out how to work other dialect spellings in, feel free to offer a patch or fork it.
+This is set to the ANSI control sequence that will reset all text rendering attributes to normal. When using the tools exported via C<:fg>, C<:bg>, C<:fg-named>, and C<:bg-named>, this should not be necessary as reset is taken care of automatically.
 
 =end pod
 
@@ -109,30 +199,56 @@ our constant $RGB-COLOR = "2";
 our constant $INDEXED-COLOR = "5";
 
 enum AnsiSgrCode is export(:raw) (
-    Reset => 0,
-    Bold => 1, Faint => 2, Italic => 3, Underline => 4,
-    BlinkSlow => 5, BlinkFast => 6, Reverse => 7, Conceal => 8, CrossOut => 9,
-    FontDefault => 10, FontAlt1 => 11, FontAlt2 => 12, FontAlt3 => 13,
-    FontAlt4 => 14, FontAlt5 => 15, FontAlt6 => 16,
-    FontAlt7 => 17, FontAlt8 => 18, FontAlt9 => 19, FontFraktur => 20,
-    DoubleUnderline => 21,
-    UnBold => 22, UnItalic => 23, UnUnderline => 24,
-    UnBlink => 25, UnReverse => 27, UnConceal => 28, UnCrossOut => 29,
-    FgBlack => 30, FgRed => 31, FgGreen => 32, FgYellow => 33, FgBlue => 34,
-    FgMagenta => 35, FgCyan => 36, FgWhite => 37,
-    FgSet => 38, FgDefault => 39,
-    BgBlack => 40, BgRed => 41, BgGreen => 42, BgYellow => 43, BgBlue => 44,
-    BgMagenta => 45, BgCyan => 46, BgWhite => 47,
-    BgSet => 48, BgDefault => 49,
+    SgrReset           => 0,
+    SgrBold            => 1,
+    SgrFaint           => 2,
+    SgrItalic          => 3,
+    SgrUnderline       => 4,
+    SgrBlinkSlow       => 5,
+    SgrBlinkFast       => 6,
+    SgrReverse         => 7,
+    SgrConceal         => 8,
+    SgrCrossOut        => 9,
+    SgrFontDefault     => 10,
+    SgrFontAlt1        => 11,
+    SgrFontAlt2        => 12,
+    SgrFontAlt3        => 13,
+    SgrFontAlt4        => 14,
+    SgrFontAlt5        => 15,
+    SgrFontAlt6        => 16,
+    SgrFontAlt7        => 17,
+    SgrFontAlt8        => 18,
+    SgrFontAlt9        => 19,
+    SgrFontFraktur     => 20,
+    SgrUnderlineDouble => 21,
+    SgrUnBold          => 22,
+    SgrUnItalic        => 23,
+    SgrUnUnderline     => 24,
+    SgrUnBlink         => 25,
+    SgrUnReverse       => 27,
+    SgrUnConceal       => 28,
+    SgrUnCrossOut      => 29,
+    SgrFgBlack         => 30,
+    SgrFgRed           => 31,
+    SgrFgGreen         => 32,
+    SgrFgYellow        => 33,
+    SgrFgBlue          => 34,
+    SgrFgMagenta       => 35,
+    SgrFgCyan          => 36,
+    SgrFgWhite         => 37,
+    SgrFgSet           => 38,
+    SgrFgDefault       => 39,
+    SgrBgBlack         => 40,
+    SgrBgRed           => 41,
+    SgrBgGreen         => 42,
+    SgrBgYellow        => 43,
+    SgrBgBlue          => 44,
+    SgrBgMagenta       => 45,
+    SgrBgCyan          => 46,
+    SgrBgWhite         => 47,
+    SgrBgSet           => 48,
+    SgrBgDefault       => 49,
 );
-
-our sub ansi-code(@params, $final --> Str:D) is export(:raw) {
-    "{$CSI}@params.join()$final"
-}
-
-our sub ansi-sgr-code(AnsiSgrCode:D $code, *@params --> Str:D) is export(:raw) {
-    ansi-code([$code.value, |@params.map({ ";$_" })], $SGR)
-}
 
 enum Color256 is export(:colors) <
     Black Maroon Green Olive  Navy Purple  Teal Silver
@@ -179,6 +295,62 @@ enum Color256 is export(:colors) <
     Gray19 Gray20 Gray21 Gray22 Gray23 Gray24
 >;
 
+=begin pod
+
+=head1 ROUTINES
+
+=head2 sub ansi-csi-code
+
+    our sub ansi-csi-code(@params, $final --> Str:D) is export(:raw)
+
+This method outputs an ANSI code with a CSI (control sequence introducer) prefix, C<\e[>. For example, to perform cursor reset to return all graphics parameters back to normal, you can run:
+
+    print ansi-csi-code(["0"], "m");
+
+=end pod
+
+our sub ansi-csi-code(@params, $final --> Str:D) is export(:raw) {
+    "{$CSI}@params.join()$final"
+}
+
+=begin pod
+
+=head2 sub ansi-sgr-code
+
+    our sub ansi-sgr-code(AnsiSgrCode:D $code, *@params --> Str:D) is export(:raw)
+
+This is a further specialization of L<#method ansi-csi-code>, which outputs an ANSI sequence with the SGR (select graphics rendition) suffix, C<m>.
+
+For example, if you want to turn on slow blink for some text on your terminal. You might write:
+
+    print ansi-sgr-code(SgrBlinkSlow),
+          "Blinking Text",
+          ansi-sgr-code(SgrUnBlink);
+
+=end pod
+
+our sub ansi-sgr-code(AnsiSgrCode:D $code, *@params --> Str:D) is export(:raw) {
+    ansi-csi-code([$code.value, |@params.map({ ";$_" })], $SGR)
+}
+
+=begin pod
+
+=head2 sub colors256
+
+    sub colors256(:$ansi, :$cube, :$grays --> Seq)
+
+If you would like to iterate through the available indexed colors for some reason, this routine provides a convenient means of getting at the colors enum in order. This is helpful because Raku enumerations are not any more ordered than any other map, even though there is an implied ordering in the language structure.
+
+=item * With no flags, it returns all 256 color enumeration values as a sequence in ascending order.
+
+=item * With the C<:ansi> flag, it returns the first 16 colors in ascending order.
+
+=item * With the C<:cube> flag, it returns the middle 216 colors from the color cube band in ascending order.
+
+=item * With the C<:grays> flag, it returns the full 26 color gray scale in ascending order.
+
+=end pod
+
 our proto colors256(|) is export(:colors) { * }
 multi colors256(--> Seq) {
     Color256.enums.values.sort.map: { Color256($^color) }
@@ -193,53 +365,76 @@ multi colors256(:$grays! --> Seq) {
     (Gray0, Gray1..Gray24, Gray25).flat.map: { Color256($^color) }
 }
 
-our constant ansi-reset-code is export(:raw) = ansi-sgr-code(Reset);
+our constant ansi-reset-code is export(:raw) = ansi-sgr-code(SgrReset);
+
+=begin pod
+
+=head2 sub fg-color-code
+
+    our proto fg-color-code(|) is export(:raw)
+    multi fg-color-code(Color256:D $color, :$on --> Str:D)
+    multi fg-color-code(Int:D $color, :$on --> Str:D)
+    multi fg-color-code(Int:D $r, Int:D $g, Int:D $b, :$on --> Str:D)
+
+This is a low level function that outputs the ANSI control sequence for setting the color of the text that comes after it.
+
+The version that takes a L<Color256#enum Color256> and the version that takes a single L<Int> set the color to the indexed palette color. One sets it to the named color from teh enumeration and the second is an integer between 0 and 255 (inclusive) that sets it using the numeric index.
+
+The final version that takes three L<Int>s uses the values as the Truecolor RGB color value to give the following text.
+
+All the changes above will affect the foreground color.
+
+The named C<:$on> argument gives you the option of setting the background color at the same time as the foreground color. It may take exactly the same forms: a single L<Color256#enum Color256>, a single L<Int>, or three L<Int>s for the RGB color value.
+
+All of them return a string containing the ANSI code or codes needed to perform the color change requested.
+
+=end pod
 
 subset ColorIndex of Int where 0 <= * < 256;
 
 our proto fg-color-code(|) is export(:raw) { * }
 multi fg-color-code(Color256:D $color, :$on --> Str:D) {
-    ansi-sgr-code(FgSet, $INDEXED-COLOR, $color.value)
+    ansi-sgr-code(SgrFgSet, $INDEXED-COLOR, $color.value)
     ~ do with $on { bg-color-code(|$on) } else { '' }
 }
 multi fg-color-code(ColorIndex:D $color, :$on --> Str:D) {
-    ansi-sgr-code(FgSet, $INDEXED-COLOR, $color)
+    ansi-sgr-code(SgrFgSet, $INDEXED-COLOR, $color)
     ~ do with $on { bg-color-code(|$on) } else { '' }
 }
 
 our sub fg-default-code(:$on) is export(:raw) {
     ansi-sgr-code(
-        FgDefault,
-        |(do with $on { BgDefault.value } else { () }),
+        SgrFgDefault,
+        |(do with $on { SgrBgDefault.value } else { () }),
     )
 }
 
 our proto bg-color-code(|) is export(:raw) { * }
 multi bg-color-code(Color256() $color, :$with --> Str:D) {
-    ansi-sgr-code(BgSet, $INDEXED-COLOR, $color.value)
+    ansi-sgr-code(SgrBgSet, $INDEXED-COLOR, $color.value)
     ~ do with $with { fg-color-code(|$with) } else { '' }
 }
 multi bg-color-code(ColorIndex:D $color, :$with --> Str:D) {
-    ansi-sgr-code(BgSet, $INDEXED-COLOR, $color)
+    ansi-sgr-code(SgrBgSet, $INDEXED-COLOR, $color)
     ~ do with $with { fg-color-code(|$with) } else { '' }
 }
 
 our sub bg-default-code(:$with) is export(:raw) {
     ansi-sgr-code(
-        BgDefault,
-        |(do with $with { FgDefault.value } else { () }),
+        SgrBgDefault,
+        |(do with $with { SgrFgDefault.value } else { () }),
     )
 }
 
 subset ColorElement of Int where 0 <= * < 256;
 
 multi fg-color-code(ColorElement:D $r, ColorElement:D $g, ColorElement:D $b, :$on --> Str:D) {
-    ansi-sgr-code(FgSet, $RGB-COLOR, $r, $g, $b)
+    ansi-sgr-code(SgrFgSet, $RGB-COLOR, $r, $g, $b)
     ~ do with $on { bg-color-code(|$on) } else { '' }
 }
 
 multi bg-color-code(ColorElement:D $r, ColorElement:D $g, ColorElement:D $b, :$with --> Str:D) {
-    ansi-sgr-code(BgSet, $RGB-COLOR, $r, $g, $b)
+    ansi-sgr-code(SgrBgSet, $RGB-COLOR, $r, $g, $b)
     ~ do with $with { fg-color-code(|$with) } else { '' }
 }
 
